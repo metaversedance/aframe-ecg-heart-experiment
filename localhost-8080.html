@@ -1,0 +1,201 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+    <script async="" src="https://www.google-analytics.com/analytics.js"></script><script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/tizzle/aframe-orbit-controls-component/v0.1.13/dist/aframe-orbit-controls-component.min.js"></script>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1" />
+    <title>Examples • Animation</title>
+    <script src="aframe-extras.js"></script>
+    <script src="ecgData.js"></script>
+    <script type="text/javascript">
+// AFRAME.registerComponent("scale-to-entity-speed",{
+//     schema: {
+//         entityToTrack: { type: "string"},
+//         partToScale: {type: "string"}
+//     },
+//     init: function() {
+//         this.objectToFollow = this.el.sceneEl.querySelector(this.data.entityToTrack);
+//         this.speed = 0;
+//         this.lastObjPosition = this.el.getAttribute("position");
+//         this.getSpeed = function(deltaTime,currentPosition, lastPosition) {
+//             var deltaX = lastPosition.x - currentPosition.x ;
+//             var deltaY =  lastPosition.y - currentPosition.y ;
+//             var deltaZ = lastPosition.z - currentPosition.z;
+//             var distanceTravelled =  Math.sqrt( deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ)
+//             var speed = distanceTravelled / deltaTime;
+//             return speed;
+
+//         }
+//         // forearm_L 7 forearm_R 26 dancer.object3D.children[0].geometry
+
+//     },
+//     tick: function(time,delta) {
+//         if(this.objectToFollow &amp;&amp; this.el.object3D.children[0]) {
+//             var currentObjPosition =  this.objectToFollow.getAttribute("position");
+//             var speed = this.getSpeed(delta, currentObjPosition, this.lastObjPosition)
+
+
+//             this.lastObjPosition = currentObjPosition;
+
+//         }
+
+//     },
+//     multiple: true
+
+//  })
+
+      AFRAME.registerComponent("heart-pump-animation",{
+        schema: {
+          heartPumpScalar: {type:"number", default:2},
+          heartFragmentMorphScalar: {type: "number", default: 0},
+          // entityToTrack: {type: "string"},
+
+        },
+        init: function() {
+          this.slider = document.getElementById("heart-slider");
+          // this.getSpeed = function(deltaTime,currentPosition, lastPosition) {
+          //     var deltaX = lastPosition.x - currentPosition.x ;
+          //     var deltaY =  lastPosition.y - currentPosition.y ;
+          //     var deltaZ = lastPosition.z - currentPosition.z;
+          //     var distanceTravelled =  Math.sqrt( deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ)
+          //     var speed = distanceTravelled / deltaTime;
+          //     return speed;
+
+          // }
+          // this.entityToTrack = this.el.sceneEl.querySelector(this.data.entityToTrack);
+          // this.lastObjPosition = this.entityToTrack.getAttribute("position");
+
+
+          this.ecgData = window.ecgData;
+          console.log("this.el.object3d",this.el.object3D)
+          this.ecgArrIdx = 0;
+          this.timeCounter = 0;
+
+        },
+        tick: function(time,deltaTime) {
+          this.timeCounter+=deltaTime;
+          // console.log(this.timeCounter)
+          if(this.timeCounter &gt; 1) {
+            this.timeCounter = 0;
+            this.ecgArrIdx++;
+          }
+          if(this.ecgArrIdx === this.ecgData.length) {
+            this.ecgArrIdx = 0;
+          }
+
+
+          if(this.el.object3D.children[0])  {
+            // var currentObjPosition =  this.entityToTrack.getAttribute("position");
+            // var speed = this.getSpeed(deltaTime, currentObjPosition, this.lastObjPosition)
+
+            var heartPumpScalar =  this.data.heartPumpScalar;
+            var heartFragmentMorphValue = this.data.heartFragmentMorphValue;
+            this.el.object3D.children[0].morphTargetInfluences[1] = this.ecgData[this.ecgArrIdx]*heartPumpScalar;
+            this.el.object3D.children[0].morphTargetInfluences[3] = parseFloat(this.slider.value/10)
+
+            // this.lastObjPosition = currentObjPosition;
+
+
+
+          }
+        }
+      })
+    </script>
+  <style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style><script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto%7CRoboto+Mono" media="all" /><script>WebFont.load({google: {families: ["Roboto", "Roboto Mono"]}});</script></head>
+  <body class="a-body aframe-inspector-opened">
+    
+    <input type="range" id="heart-slider" value="0" max="100" min="0" style="z-index: 1; position:relative; float: right" />
+    <button id="wireframe-bttn" style="position: relative; z-index:1 ; float: right">wireframe</button>
+
+    <script>
+  //toggles wireframe of heart
+    var wireframeBttn = document.getElementById("wireframe-bttn")
+
+    wireframeBttn.addEventListener("click", function(){
+      document.getElementById("heart").object3D.children[0].material.materials.forEach(function(material){
+        var wireframeBool = material.wireframe = !material.wireframe;
+
+        wireframeBttn.innerText = "wireframe: " + wireframeBool;
+      })
+    })
+  </script>
+    <a-scene class="fullscreen" canvas="" inspector="url:https://unpkg.com/aframe-inspector@0.5.x/dist/aframe-inspector.min.js" keyboard-shortcuts="enterVR:true;exitVR:true;resetSensor:true" screenshot="width:4096;height:2048" vr-mode-ui="enabled:true" auto-enter-vr="display:GearVR;enabled:true">
+    <a-assets>
+      <a-asset-item id="heart-model" src="heart_morph2.json"></a-asset-item>
+    </a-assets>
+      <!-- Player -->
+      <a-entity id="camera" camera="userHeight:1.6;active:false" universal-controls="" position="3.2701341121390586 1.5032553924667273 4.026331579725155" orbit-controls="autoRotate:true;target:#heart;enableDamping:true;dampingFactor:1;rotateSpeed:0.01;minDistance:.1;maxDistance:100" mouse-cursor="" rotation="4.573921451044357 39.199999579458094 -1.694203334177285e-8" scale="1 1 1" visible="true" velocity="-3.82140446260509e-172 0 -3.1466460931840064e-172" look-controls="" gamepad-controls="" keyboard-controls="" touch-controls="" hmd-controls="" mouse-controls="">
+      </a-entity>
+
+      <!-- Animation
+           See: http://threejs.org/examples/#webgl_animation_scene
+      -->
+      <a-entity id="heart" json-model="src:#heart-model" position="0 2 0" scale="3 3 3" heart-pump-animation="heartPumpScalar:6.450;heartFragmentMorphValue:1" rotation="0 0 0" visible="true">
+      </a-entity>
+
+      <a-entity json-model="src:#heart-model" position="0 2 -4.348" scale="5 5 5" heart-pump-animation="heartPumpScalar:10;heartFragmentMorphValue:1" rotation="52.655 180.023 180.023" visible="true">
+      </a-entity>
+
+    <a-entity json-model="src:#heart-model" position="-3.576 2 0.984" scale="1 4.431 12.073" heart-pump-animation="heartPumpScalar:3;heartFragmentMorphValue:1" rotation="0 45.60744049241353 0" visible="true">
+      </a-entity>
+
+    <a-entity json-model="src:#heart-model" position="0 2 0" scale="1 1 1" heart-pump-animation="heartPumpScalar:3;heartFragmentMorphValue:1" rotation="0 0 0" visible="true">
+     </a-entity>
+
+    <a-entity json-model="src:#heart-model" position="0 2 0" scale="1 1 1" heart-pump-animation="heartPumpScalar:3;heartFragmentMorphValue:1" rotation="0 0 0" visible="true">
+     </a-entity>
+
+
+      <!-- Lighting -->
+      <a-light type="ambient" color="#bbb" position="0 0 0" rotation="0 0 0" scale="1 1 1" visible="true" light="type:ambient;color:#bbb"></a-light>
+      <a-light color="#ccc" position="0 30 0" distance="100" intensity="0.4" type="point" rotation="0 0 0" scale="1 1 1" visible="true" light="color:#ccc;distance:100;intensity:0.4;type:point"></a-light>
+      <a-light color="#ccc" position="3 10 -10" distance="50" intensity="0.4" type="point" rotation="0 0 0" scale="1 1 1" visible="true" light="color:#ccc;distance:50;intensity:0.4;type:point"></a-light>
+      <a-sky color="black" position="0 0 0" rotation="0 0 0" scale="-1 1 1" visible="true" material="color:black;shader:flat" geometry="primitive:sphere;radius:5000;segmentsWidth:64;segmentsHeight:20"></a-sky>
+    <canvas class="a-canvas a-grab-cursor" data-aframe-canvas="true" width="1015" height="776" style="width: 1015px; height: 776px;"></canvas><a-entity camera="far:10000;fov:50;near:0.05;active:true" position="0 0 0" rotation="0 0 0" scale="1 1 1" visible="true"></a-entity></a-scene>
+  <!-- Code injected by live-server -->
+<script type="text/javascript">
+	// &lt;![CDATA[  &lt;-- For SVG support
+	if ('WebSocket' in window) {
+		(function() {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i &lt; sheets.length; ++i) {
+					var elem = sheets[i];
+					head.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href &amp;&amp; typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&amp;|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') &gt;= 0 ? '&amp;' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					head.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function(msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			console.log('Live reload enabled.');
+		})();
+	}
+	// ]]&gt;
+</script>
+
+<div class="a-inspector-loader">Loading Inspector<span class="dots"><span>.</span><span>.</span><span>.</span></span></div><a style="display: none;"></a></body></html>
