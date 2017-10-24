@@ -11,41 +11,50 @@
     <script src="aframe-extras.js"></script>
     <script src="ecgData.js"></script>
     <script type="text/javascript">
-// AFRAME.registerComponent("scale-to-entity-speed",{
-//     schema: {
-//         entityToTrack: { type: "string"},
-//         partToScale: {type: "string"}
-//     },
-//     init: function() {
-//         this.objectToFollow = this.el.sceneEl.querySelector(this.data.entityToTrack);
-//         this.speed = 0;
-//         this.lastObjPosition = this.el.getAttribute("position");
-//         this.getSpeed = function(deltaTime,currentPosition, lastPosition) {
-//             var deltaX = lastPosition.x - currentPosition.x ;
-//             var deltaY =  lastPosition.y - currentPosition.y ;
-//             var deltaZ = lastPosition.z - currentPosition.z;
-//             var distanceTravelled =  Math.sqrt( deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ)
-//             var speed = distanceTravelled / deltaTime;
-//             return speed;
+      AFRAME.registerComponent("offset-texture-animation", {
+        //Anything in schema can be changed in the visual inspector! CTRL+ATL+i 
+        schema: {
+          "heart-texture": {"type":"string"},
+          "offset-scale": {default: 0.03}
+        },
+        init: function(){
+          var self = this;
+          //Load tree-veins texture to be used on mesh & animated via offset
+          this.texLoader = new THREE.TextureLoader();//
+          // this.heartTex = this.texLoader.load(this.data["heart-texture"]);
+          this.heartTex = this.texLoader.load("textures/tree-veins.jpg");
 
-//         }
-//         // forearm_L 7 forearm_R 26 dancer.object3D.children[0].geometry
+          //create new THREE.js material. Important to set morphTargets to true!
+          this.material = new THREE.MeshLambertMaterial({morphTargets: true, map: this.heartTex});
 
-//     },
-//     tick: function(time,delta) {
-//         if(this.objectToFollow && this.el.object3D.children[0]) {
-//             var currentObjPosition =  this.objectToFollow.getAttribute("position");
-//             var speed = this.getSpeed(delta, currentObjPosition, this.lastObjPosition)
+          this.el.addEventListener("model-loaded", function(e){
+            console.log(e)
+            console.log(self.material)
+            e.detail.model.material = self.material;
+          })
+
+        }, //tick function called on each frame, 
+            //arguments: time since initialization, time since last tick
+        tick: function(time,delta) {
+          if(!this.el.object3D.children[0]) return;
+          //Create a sin wave from time, scaled by offset-scale
+          // var offset = Math.sin(time) * this.data["offset-scale"];
+          var offset = Math.sin(time/3000)/10;
+
+          //offset texture x & y
+          this.el.object3D.children[0].material.map.offset.y = offset;
+          this.el.object3D.children[0].material.map.offset.x = offset;
+
+        },
+        update: function(oldData) {
+          if(oldData["heart-texture"] !== this.data["heart-texture"]) {
+            this.heartTex = this.texLoader.load(this.data["heart-texture"]);
+          }
 
 
-//             this.lastObjPosition = currentObjPosition;
+        }
 
-//         }
-
-//     },
-//     multiple: true
-
-//  })
+      })
 
       AFRAME.registerComponent("heart-pump-animation",{
         schema: {
@@ -126,31 +135,20 @@
   </script>
   <script type="text/javascript">
     
-    var loader = new THREE.TextureLoader();
-    loader.load("textures/tree-veins.jpg", function(tex){
-      window.heartTex = tex;
-
-    })
-    // var material = new THREE.MeshLambertMaterial({morphTargets: true, map: heartTex})
-
-  // var interval = setInterval(function(){
-  //   var offset = Math.sin(clock.getElapsedTime())/10
-  //   heart.object3D.children[0].material.map.offset.y = offset;
-  //   heart.object3D.children[0].material.map.offset.x = offset;
-
-  // },50)
   </script>
     <a-scene>
     <a-assets>
+      <img id="tree-veins" src="textures/tree-veins.jpg">
       <a-asset-item id="heart-model" src="heart_morph2.json"></a-asset-item>
     </a-assets>
       <!-- Player -->
-<!--       <a-entity id="camera"
+      <a-entity id="camera"
                 camera="userHeight: 1.6"
                 universal-controls
+                position="0 1 0"
                 position="0 0 5"
                 orbit-controls="
-                  autoRotate: false;
+                  autoRotate: true;
                   target: #heart;
                   enableDamping: true;
                   dampingFactor: 1;
@@ -160,20 +158,23 @@
                   "
                 mouse-cursor=""
                 >
-      </a-entity> -->
+      </a-entity>
 
-      <a-entity id="camera"
+<!--       <a-entity id="camera"
+                universal-controls
                 camera="userHeight: 1.6"
                 universal-controls
                 position="0 2 12"
                 mouse-cursor=""
                 >
-      </a-entity>
+      </a-entity> -->
 
       <!-- Animation
            See: http://threejs.org/examples/#webgl_animation_scene
       -->
       <a-entity id="heart" 
+                offset-texture-animation="heart-texture:textures/tree-veins.jpg"
+
                 rotation="-48.530 173.950 -42.170"
                 json-model="src:bloom_texture_mapped.json"
                 position="0 2 0"
